@@ -18,7 +18,7 @@
 
    <li class="list-group-item"> 
 
-      <strong>{{ Request.requested_for_email }}</strong> access: {{ Request.access_level }} created on: {{ Request.created_at }}
+      <strong>{{ Request.requested_for_email }}</strong> access: {% if Request.access_level == 0 %} Viewer {% elif Request.access_level == 1 %} Editor {% elif Request.access_level == 2 %} Authorisor {% endif %} created on: {{ Request.created_at }}
             ~ Added By: {{ Request.requester.email }}
       <!-- Displays the Request content. -->
 
@@ -42,7 +42,11 @@
    </div>
   <div class="form-group">
    <label for="name">access level</label>
-   <input type="text" class="form-control" id="access_level" name="access_level" required />
+   <select id="access_level" name="access_level" class="form-control" required>
+      <option value="0">Viewer</option>
+      <option value="1">Editor</option>
+      <option value="2">Authorisor</option>
+   </select>
   </div>
 
    <br />
