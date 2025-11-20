@@ -127,21 +127,49 @@ def update_request():
              print(f"Error: {str(e)}")
              db.session.rollback()
              return jsonify({"message": f"Server error: {str(e)}"}), 500  # Return 500 if there is an error
-            
-        return render_template("home.html", user=current_user, requests=requests)
-        
+
 @views.route('/Users', methods=['GET'])
 @login_required
 def users():
     if current_user.role != 2:
         flash('You must be an Admin to view users', category='error')
-        return render_template("home.html", user=current_user)
+        return redirect(url_for('views.home'))
     else:
         all_users = User.query.all()
         return render_template("Users.html", user=current_user, users=all_users)
 
 
+@views.route('/updateState', methods=['PUT'])
+@login_required
+def update_state():
+    request_id = request.get_json().get('requestId')
+    request_obj = Requests.query.get(request_id)
+    state = request_obj.state if request_obj else None
 
+    if current_user.role!= 2:
+        flash('Only Admins can update the request status.', category='error')
+        return jsonify({})
+    elif state == 0:
+        request_obj.state = 1
+        db.session.commit()
+        return redirect(url_for('views.home'))
+    elif state == 1:
+        request_obj.state = 2
+        db.session.commit()
+        return redirect(url_for('views.home'))
+    elif state == 2:
+        request_obj.state = 3
+        db.session.commit()
+        return redirect(url_for('views.home'))
+    elif state == 3:
+        flash('Request is already completed.', category='error')
+        return redirect(url_for('views.home'))
+    elif state == 4:
+        flash('Request has been denied previously.', category='error')
+        return redirect(url_for('views.home'))
+    else :
+        flash('Invalid state value.', category='error')
+        return redirect(url_for('views.home'))
 
 
 # Route to handle note deletion
