@@ -69,10 +69,12 @@
             <input class="form-control" type = "text" id="updateRequestedForEmail">
          </div>
          <div class="form group">
-            <label>
-                
-            </label>
-            <input class="form-control" type = "text" id="updateAccessLevel">
+            <label for="name">access level</label>
+            <select id="updateAccessLevel" name="access_level" class="form-control" required>
+               <option value="0">Viewer</option>
+               <option value="1">Editor</option>
+               <option value="2">Authorisor</option>
+            </select>
          </div>
       </br>
          <button type="button" class="btn btn-primary" id="saveUpdateBtn" >Save changes</button>
