@@ -20,6 +20,26 @@ function deleteRequest(requestId) {
 
 }
 
+function deleteUser (Userid) {
+    // Sends a DELETE request to the '/delete-note' route with the noteId as the payload.
+  if (confirm("Are you sure you want to delete this User?")) {
+    fetch('/deleteUser', {
+        method: 'POST', 
+        body: JSON.stringify({ userId: Userid }),
+        headers: { 'Content-Type': 'application/json' } ,
+    })
+    .then((_res) => {
+        window.location.href = "/Users";
+    })
+    .catch((err) => {
+      
+        console.error("Error deleting the User:", err);
+    });
+} else {
+    console.log("deletion cancelled.")
+}
+
+}
 
 function updateState (RequestId, state){
     if (confirm("Are you sure you want to update the state of this Request?")) {

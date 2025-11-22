@@ -138,6 +138,28 @@ def users():
         all_users = User.query.all()
         return render_template("Users.html", user=current_user, users=all_users)
 
+@views.route('/deleteUser', methods=['POST'])
+@login_required
+def deleteUser():
+    UserId = request.get_json().get('userId')
+    user_obj = User.query.get(UserId)
+    admin_count = User.query.filter_by(role=2).count()
+
+    if current_user.role != 2:
+        flash('You must be an Admin to delete users', category='error')
+    elif user_obj is None:
+        flash('Error, User doesnt exist', category='error')
+    elif user_obj.role == 2 and admin_count <= 1:
+        flash('Cannot delete the last Admin user.', category='error') 
+    elif user_obj.id == current_user.id:
+        flash('You cannot delete your own account.', category='error')
+    elif user_obj:
+        db.session.delete(user_obj)
+        db.session.commit()
+        flash('User deleted.', category='success')
+    else:
+        flash('Error', category='error')
+    return jsonify({})
 
 @views.route('/updateState', methods=['PUT'])
 @login_required
@@ -148,33 +170,25 @@ def update_state():
 
     if current_user.role!= 2:
         flash('Only Admins can update the request status.', category='error')
-        return jsonify({})
     elif state == 0:
         request_obj.state = 1
         db.session.commit()
-        flash('Request state Updated', category='success')
-        return redirect(url_for('views.home'))
-        
+        flash('Request state Updated', category='success') 
     elif state == 1:
         request_obj.state = 2
         db.session.commit()
         flash('Request state Updated', category='success')
-        return redirect(url_for('views.home'))
     elif state == 2:
         request_obj.state = 3
         db.session.commit()
         flash('Request state Updated', category='success')
-        return redirect(url_for('views.home'))
     elif state == 3:
         flash('Request is already completed.', category='error')
-        return redirect(url_for('views.home'))
     elif state == 4:
         flash('Request has been denied previously.', category='error')
-        return redirect(url_for('views.home'))
     else :
         flash('Invalid state value.', category='error')
-        return redirect(url_for('views.home'))
-
+    return jsonify({})
 
 @views.route('/Reject', methods = ['PUT'])
 @login_required
@@ -184,22 +198,17 @@ def Reject():
     state = request_obj.state if request_obj else None
     if current_user.role!= 2:
         flash('Only Admins can update the request status.', category='error')
-        return jsonify({})
     elif state == 3:
         flash('Request is already completed.', category='error')
-        return redirect(url_for('views.home'))
     elif state == 4:
         flash('Request has been denied previously.', category='error')
-        return redirect(url_for('views.home'))
     elif state in [0,1,2]:
         request_obj.state = 4
         db.session.commit()
-        flash('Request rejected', category='sucess')
-        return redirect(url_for('views.home'))
+        flash('Request rejected', category='success')
     else :
         flash('Invalid state value.', category='error')
-        return redirect(url_for('views.home'))
-
+    return jsonify({})
 
 # Route to handle note deletion
 @views.route('/delete-Request', methods=['POST'])
