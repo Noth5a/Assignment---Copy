@@ -35,10 +35,31 @@ function updateState (RequestId, state){
     })
     .catch((err) => {
       
-        console.error("Error deleting the Request:", err);
+        console.error("Error updating the state:", err);
     });
 } else {
-    console.log("deletion cancelled.")
+    console.log("Update cancelled.")
+}
+}
+
+function Reject (RequestId, state){
+    if (confirm("Are you sure you want to reject this Request?")) {
+    fetch("/Reject",{
+        method : "PUT",
+        body: JSON.stringify({ requestId: RequestId, state : state }),
+        headers: { 'Content-Type': 'application/json' } 
+    })
+
+    .then((_res) => {
+
+        window.location.href = "/"; 
+    })
+    .catch((err) => {
+      
+        console.error("Error rejecting the Request:", err);
+    });
+} else {
+    console.log("Rejection cancelled.")
 }
 }
 

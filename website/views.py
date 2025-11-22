@@ -152,20 +152,49 @@ def update_state():
     elif state == 0:
         request_obj.state = 1
         db.session.commit()
+        flash('Request state Updated', category='success')
         return redirect(url_for('views.home'))
+        
     elif state == 1:
         request_obj.state = 2
         db.session.commit()
+        flash('Request state Updated', category='success')
         return redirect(url_for('views.home'))
     elif state == 2:
         request_obj.state = 3
         db.session.commit()
+        flash('Request state Updated', category='success')
         return redirect(url_for('views.home'))
     elif state == 3:
         flash('Request is already completed.', category='error')
         return redirect(url_for('views.home'))
     elif state == 4:
         flash('Request has been denied previously.', category='error')
+        return redirect(url_for('views.home'))
+    else :
+        flash('Invalid state value.', category='error')
+        return redirect(url_for('views.home'))
+
+
+@views.route('/Reject', methods = ['PUT'])
+@login_required
+def Reject():
+    request_id = request.get_json().get('requestId')
+    request_obj = Requests.query.get(request_id)
+    state = request_obj.state if request_obj else None
+    if current_user.role!= 2:
+        flash('Only Admins can update the request status.', category='error')
+        return jsonify({})
+    elif state == 3:
+        flash('Request is already completed.', category='error')
+        return redirect(url_for('views.home'))
+    elif state == 4:
+        flash('Request has been denied previously.', category='error')
+        return redirect(url_for('views.home'))
+    elif state in [0,1,2]:
+        request_obj.state = 4
+        db.session.commit()
+        flash('Request rejected', category='sucess')
         return redirect(url_for('views.home'))
     else :
         flash('Invalid state value.', category='error')

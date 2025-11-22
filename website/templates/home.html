@@ -26,6 +26,7 @@
       {% if user.role == 2 %}
       <button type ="button" class="btn btn-outline-dark" style = "background-color: Green" onClick="updateState('{{ Request.id }}', '{{ Request.state }}')">Update State</button>
       {% endif %}
+      <button type ="button" class="btn btn-outline-dark" style = "background-color: red" onClick="Reject('{{ Request.id }}', '{{ Request.state }}')">Reject</button>
       <button type="button" class="close" onClick="deleteRequest('{{ Request.id }}')">
          <!-- Button to delete the Request. Calls the JavaScript function `deleteRequest` and passes the Request's ID. -->
 
