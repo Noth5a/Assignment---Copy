@@ -1,4 +1,5 @@
 # Importing Dependencies
+import os
 from flask import Flask 
 from flask_sqlalchemy import SQLAlchemy 
 from os import path 
@@ -6,15 +7,17 @@ from flask_login import LoginManager
 
 # Initialize the database object
 db = SQLAlchemy()
-DB_NAME = "database.db"
 
 def create_app():
     # Initialize the Flask application
     app = Flask(__name__)
     
-    app.config['SECRET_KEY'] = 'jhdfh'
+    DB_NAME = os.environ.get("DATABASE_NAME")
+    SECRET_KEY = os.environ.get("SECRET_KEY")
+    SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
     
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
+    app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
+    app.config['SECRET_KEY'] = SECRET_KEY
     
     # Initialize the database with the Flask app
     db.init_app(app)
