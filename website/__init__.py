@@ -4,6 +4,9 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy 
 from os import path 
 from flask_login import LoginManager 
+from flask_wtf.csrf import CSRFProtect
+
+csrf = CSRFProtect()
 
 # Initialize the database object
 db = SQLAlchemy()
@@ -21,6 +24,8 @@ def create_app():
     
     # Initialize the database with the Flask app
     db.init_app(app)
+
+    csrf.init_app(app)
 
     # Import and register the Blueprints for different routes
     from .views import views 

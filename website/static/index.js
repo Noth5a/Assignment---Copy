@@ -1,10 +1,17 @@
+const csrfToken = document
+  .querySelector('meta[name="csrf-token"]')
+  .getAttribute('content');
+
 function deleteRequest(requestId) {
     // Sends a DELETE request to the '/delete-note' route with the noteId as the payload.
   if (confirm("Are you sure you want to delete this Request?")) {
     fetch('/delete-Request', {
         method: 'POST', 
         body: JSON.stringify({ requestId: requestId }),
-        headers: { 'Content-Type': 'application/json' } 
+        headers: { 'Content-Type': 'application/json',
+        "X-CSRFToken": csrfToken   // <--- required
+        },
+
     })
     .then((_res) => {
 
