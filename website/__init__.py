@@ -8,13 +8,17 @@ from flask_login import LoginManager
 db = SQLAlchemy()
 DB_NAME = "database.db"
 
-def create_app():
+def create_app(test_config=None):
     # Initialize the Flask application
     app = Flask(__name__)
     
-    app.config['SECRET_KEY'] = 'jhdfh'
-    
-    app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
+    if test_config:
+        # Load test configuration
+        app.config.update(test_config)
+    else:
+        # Load from normal configuration
+        app.config['SECRET_KEY'] = 'jhdfh'
+        app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
     
     # Initialize the database with the Flask app
     db.init_app(app)
