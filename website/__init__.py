@@ -11,7 +11,7 @@ csrf = CSRFProtect()
 # Initialize the database object
 db = SQLAlchemy()
 
-def create_app():
+def create_app(test_config=None):
     # Initialize the Flask application
     app = Flask(__name__)
     
@@ -21,6 +21,17 @@ def create_app():
     
     app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
     app.config['SECRET_KEY'] = SECRET_KEY
+    if test_config:
+        # Load test configuration
+        app.config.update(test_config)
+    else:
+        # Load from normal configuration
+        DB_NAME = os.environ.get("DATABASE_NAME")
+        SECRET_KEY = os.environ.get("SECRET_KEY")
+        SQLALCHEMY_DATABASE_URI = os.environ.get("DATABASE_URL")
+    
+        app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
+        app.config['SECRET_KEY'] = SECRET_KEY
     
     # Initialize the database with the Flask app
     db.init_app(app)
