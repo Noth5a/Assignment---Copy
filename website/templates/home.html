@@ -39,7 +39,7 @@
 
 <form method="POST">
    <!-- Form to add a new note. Uses POST method to submit data. -->
-
+   {{ csrf_token() }}
    <div class="form-group">
       <label for="name">requested for email</label>
       <input type="text" class="form-control" id="requested_for_email" name="requested_for_email" required />
