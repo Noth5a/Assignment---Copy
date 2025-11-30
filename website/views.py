@@ -3,7 +3,9 @@ from ast import If
 from copy import error
 import email
 from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for  
-from flask_login import login_required, current_user 
+from flask_login import login_required, current_user
+
+from website.Security import can_delete_user, can_modify_user, is_admin 
 from .models import Requests, User  
 from . import db 
 import json  
@@ -71,25 +73,24 @@ def update_user():
     role = request.get_json().get('role')
     user_obj = User.query.get(user_id)
     admin_count = User.query.filter_by(role=2).count()
+    allowed , response = can_modify_user(current_user, user_obj, admin_count)
 
-    if current_user.role != 2:
-        flash('Only Admins can update user roles.', category='error')
-    elif not user_obj:
-        flash('User not found!', category = 'error')
-    elif len(email) < 1:
+    if len(email) < 1:
         flash('Email is required!', category='error')
     elif len(email) > 200:
         flash('Email is too long!', category='error')
-    elif role not in ["0", "1", "2"]:
-        flash (f"Invalid role: {role}. Must be one of Regular User, Requester, or Admin.", category='error')
-    elif user_obj.role == 2 and admin_count <= 1:
-        flash('Cannot change the role of the last Admin user.', category='error')
-    else:
+    elif allowed == False:
+        flash(response, category='error')
+        return jsonify({})
+    elif allowed == True:
         user_obj.email = email
         user_obj.role = role
         db.session.commit()
         flash('User updated successfully', category='success')
+    else:
+        flash('Error', category='error')
     return jsonify({})
+
 
 # Update request route
 @views.route('/update_request', methods=['PUT','GET'])
@@ -160,7 +161,7 @@ def update_request():
 @views.route('/Users', methods=['GET'])
 @login_required
 def users():
-    if current_user.role != 2:
+    if not is_admin(current_user):
         flash('You must be an Admin to view users', category='error')
         return redirect(url_for('views.home'))
     else:
@@ -174,15 +175,12 @@ def deleteUser():
     user_obj = User.query.get(UserId)
     admin_count = User.query.filter_by(role=2).count()
 
-    if current_user.role != 2:
-        flash('You must be an Admin to delete users', category='error')
-    elif user_obj is None:
-        flash('Error, User doesnt exist', category='error')
-    elif user_obj.role == 2 and admin_count <= 1:
-        flash('Cannot delete the last Admin user.', category='error') 
-    elif user_obj.id == current_user.id:
-        flash('You cannot delete your own account.', category='error')
-    elif user_obj:
+    allowed , response = can_delete_user(current_user, user_obj, admin_count)
+
+    if allowed == False:
+        flash(response, category='error')
+        return jsonify({})
+    elif allowed == True:
         db.session.delete(user_obj)
         db.session.commit()
         flash('User deleted.', category='success')
