@@ -51,9 +51,8 @@ def create_app(test_config=None):
 
     # Create the database if it doesn't exist yet
     with app.app_context():
-        if not path.exists('website/' + DB_NAME):
-            db.create_all() 
-            print('Created Database!')
+        db.create_all() 
+        print('Created Database!')
 
     # Initialize the LoginManager for managing user sessions
     login_manager = LoginManager()

@@ -8,7 +8,8 @@ def app():
         "TESTING": True,
         "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
         "WTF_CSRF_ENABLED": False,
-        "SECRET_KEY": "test-secret-key"
+        "SECRET_KEY": "test-secret-key",
+        "DB_NAME": ":memory:"
     })
 
     with app.app_context():
