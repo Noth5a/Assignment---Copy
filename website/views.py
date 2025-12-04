@@ -115,6 +115,7 @@ def update_request():
         access_level = request.get_json().get('access_level')
         request_obj = Requests.query.get(request_id)
         requester_id = request_obj.requester_id
+        original_requested_for_email = request_obj.requested_for_email  # Get original email for permission check
 
 
         if len(access_level) < 1:
@@ -130,7 +131,7 @@ def update_request():
             flash('Requested For Email is too long!', category='error')  # Flash an error message
             return jsonify({})
         else:
-            allowed, reason = can_update_request(current_user, requested_for_email, requester_id)
+            allowed, reason = can_update_request(current_user, original_requested_for_email, requester_id)
             if not allowed:
                 flash(reason, category='error')
                 return jsonify({})
@@ -159,12 +160,12 @@ def update_request():
 @views.route('/Users', methods=['GET'])
 @login_required
 def users():
-    if is_admin(current_user, None) == False:
+    if not is_admin(current_user):
         flash('Only Admins can view the users list.', category='error')
         return redirect(url_for('views.home'))
-    elif is_admin(current_user, None) == True:
-        all_users = User.query.all()
-        return render_template("Users.html", user=current_user, users=all_users)
+    
+    all_users = User.query.all()
+    return render_template("Users.html", user=current_user, users=all_users)
 
 @views.route('/deleteUser', methods=['POST'])
 @login_required
@@ -193,8 +194,9 @@ def update_state():
     request_obj = Requests.query.get(request_id)
     state = request_obj.state if request_obj else None
 
-    if is_admin(current_user, None) == False:
+    if not is_admin(current_user):
         flash('Only Admins can update the request status.', category='error')
+        return jsonify({})
     elif state == 0:
         request_obj.state = 1
         db.session.commit()
@@ -221,13 +223,14 @@ def Reject():
     request_id = request.get_json().get('requestId')
     request_obj = Requests.query.get(request_id)
     state = request_obj.state if request_obj else None
-    if is_admin(current_user, None) == False:
+    
+    if not is_admin(current_user):
         flash('Only Admins can update the request status.', category='error')
         return jsonify({})
-    elif allowed_transition(state, 4)==False:
+    elif not allowed_transition(state, 4):
         flash("You can not reject from this state.", category='error')
         return jsonify({})
-    elif allowed_transition(state, 4)==True:
+    else:
         request_obj.state = 4
         db.session.commit()
         flash('Request rejected', category='sucess')

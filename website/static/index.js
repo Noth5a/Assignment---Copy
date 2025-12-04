@@ -33,7 +33,10 @@ function deleteUser (Userid) {
     fetch('/deleteUser', {
         method: 'POST', 
         body: JSON.stringify({ userId: Userid }),
-        headers: { 'Content-Type': 'application/json' } ,
+        headers: { 
+            'Content-Type': 'application/json',
+            "X-CSRFToken": csrfToken
+        },
     })
     .then((_res) => {
         window.location.href = "/Users";
@@ -53,7 +56,10 @@ function updateState (RequestId, state){
     fetch("/updateState",{
         method : "PUT",
         body: JSON.stringify({ requestId: RequestId, state : state }),
-        headers: { 'Content-Type': 'application/json' } 
+        headers: { 
+            'Content-Type': 'application/json',
+            "X-CSRFToken": csrfToken
+        }
     })
 
     .then((_res) => {
@@ -74,7 +80,10 @@ function Reject (RequestId, state){
     fetch("/Reject",{
         method : "PUT",
         body: JSON.stringify({ requestId: RequestId, state : state }),
-        headers: { 'Content-Type': 'application/json' } 
+        headers: { 
+            'Content-Type': 'application/json',
+            "X-CSRFToken": csrfToken
+        }
     })
 
     .then((_res) => {
@@ -128,7 +137,8 @@ if (saveUpdateBtn) {
     fetch("/update_request", {
         method: "PUT",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken
         },
         body: JSON.stringify({
             request_id: requestId,  
@@ -164,7 +174,8 @@ if (saveUpdateUserBtn) {
     fetch("/update_user", {
         method: "PUT",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "X-CSRFToken": csrfToken
         },
         body: JSON.stringify({
             user_id: userId,  
