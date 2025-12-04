@@ -2,9 +2,8 @@
 from ast import If
 from copy import error
 import email
-from flask import Blueprint, render_template, request, flash, jsonify, redirect, url_for  
+from flask import Blueprint, app, render_template, request, flash, jsonify, redirect, url_for  
 from flask_login import login_required, current_user
-
 from website.Security import can_delete_user, can_modify_user, is_admin 
 from .models import Requests, User  
 from . import db 
@@ -28,6 +27,9 @@ def home():
         allowed, reason = can_create_request(current_user, requested_for_email)
         if not allowed:
             flash(reason, category='error')
+            app.logger.warning(
+                f"Unauthorized request creation attempt by user {current_user.id} for email {requested_for_email}"
+            )
         elif allowed:
             # Create a new request
             new_request = Requests(
@@ -44,6 +46,9 @@ def home():
             db.session.add(new_request) 
             db.session.commit() 
             flash('Request added!', category='success')
+            app.logger.info(
+                f"Request created by user {current_user.id} for email {requested_for_email}"
+            )
             return redirect(url_for('views.home'))
         
 
@@ -83,13 +88,22 @@ def update_user():
     elif allowed == False:
         flash(response, category='error')
         return jsonify({})
+        app.logger.warning(
+            f"Unauthorized user modification attempt by user {current_user.id} on user {user_id}"
+        )
     elif allowed == True:
         user_obj.email = email
         user_obj.role = role
         db.session.commit()
         flash('User updated successfully', category='success')
+        app.logger.info(
+            f"User {user_id} updated by user {current_user.id}"
+        )
     else:
         flash('Error', category='error')
+        app.logger.error(
+            f"Error occurred during user update by user {current_user.id} on user {user_id}"
+        )
     return jsonify({})
 
 
@@ -123,7 +137,11 @@ def update_request():
             return jsonify({})
         elif access_level not in ["0", "1", "2"]:
             flash (f"Invalid access level: {access_level}. Must be one of Viewer, Editor, or Admin.", category='error') 
+            app.logger.error(
+                f"Invalid access level provided by user {current_user.id} for request {request_id}"
+            )
             return jsonify({})
+            
         elif len(requested_for_email) < 1:
             flash('Requested For Email is required!', category='error')  
             return jsonify({})
@@ -134,6 +152,9 @@ def update_request():
             allowed, reason = can_update_request(current_user, original_requested_for_email, requester_id)
             if not allowed:
                 flash(reason, category='error')
+                app.logger.warning(
+                    f"Unauthorized request update attempt by user {current_user.id} on request {request_id}"
+                )
                 return jsonify({})
             elif allowed:
             
@@ -149,6 +170,9 @@ def update_request():
 
              db.session.commit()  # Save changes
              flash('Request Updated Successfully', category='success')
+             app.logger.info(
+                    f"Request {request_id} updated by user {current_user.id}"
+                )
              return jsonify({}) 
 
             except Exception as e:
@@ -161,6 +185,9 @@ def update_request():
 def users():
     if not is_admin(current_user):
         flash('Only Admins can view the users list.', category='error')
+        app.logger.warning(
+            f"Unauthorized users list access attempt by user {current_user.id}"
+        )
         return redirect(url_for('views.home'))
     
     all_users = User.query.all()
@@ -182,8 +209,16 @@ def deleteUser():
         db.session.delete(user_obj)
         db.session.commit()
         flash('User deleted.', category='success')
+        app.logger.info(
+            f"User {UserId} deleted by user {current_user.id}"
+        )
+
+
     else:
         flash('Error', category='error')
+        app.logger.error(
+            f"Error occurred during user deletion by user {current_user.id} on user {UserId}"
+        )
     return jsonify({})
 
 @views.route('/updateState', methods=['PUT'])
@@ -195,6 +230,9 @@ def update_state():
 
     if not is_admin(current_user):
         flash('Only Admins can update the request status.', category='error')
+        app.logger.warning( 
+            f"Unauthorized request state update attempt by user {current_user.id} on request {request_id}"
+        )  
         return jsonify({})
     elif state == 0:
         request_obj.state = 1
@@ -208,12 +246,18 @@ def update_state():
         request_obj.state = 3
         db.session.commit()
         flash('Request state Updated', category='success')
+        app.logger.info(
+            f"Request {request_id} state updated to {request_obj.state} by user {current_user.id}"
+        )
     elif state == 3:
         flash('Request is already completed.', category='error')
     elif state == 4:
         flash('Request has been denied previously.', category='error')
     else :
         flash('Invalid state value.', category='error')
+        app.logger.error(
+            f"Invalid state value encountered by user {current_user.id} on request {request_id}"
+        )
     return jsonify({})
 
 @views.route('/Reject', methods = ['PUT'])
@@ -225,6 +269,9 @@ def Reject():
     
     if not is_admin(current_user):
         flash('Only Admins can update the request status.', category='error')
+        app.logger.warning( 
+            f"Unauthorized request rejection attempt by user {current_user.id} on request {request_id}"
+        )
         return jsonify({})
     elif not allowed_transition(state, 4):
         flash("You can not reject from this state.", category='error')
@@ -252,9 +299,15 @@ def delete_Request():
         allowed, response = can_delete_request(current_user, requestId, requester_id )
         if not allowed:
             flash(response, category = 'error')
+            app.logger.warning(
+                f"Unauthorized request deletion attempt by user {current_user.id} on request {requestId}"
+            )
         elif allowed: 
             db.session.delete(request_obj)  
             db.session.commit()
             flash('Request deleted.', category = 'success')
+            app.logger.info(
+                f"Request {requestId} deleted by user {current_user.id}"
+            )
 
     return jsonify({}) 

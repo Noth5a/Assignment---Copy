@@ -5,6 +5,10 @@ from flask_sqlalchemy import SQLAlchemy
 from os import path 
 from flask_login import LoginManager 
 from flask_wtf.csrf import CSRFProtect
+import logging
+from logging.handlers import RotatingFileHandler
+import os
+
 
 csrf = CSRFProtect()
 
@@ -38,6 +42,26 @@ def create_app(test_config=None):
 
     csrf.init_app(app)
 
+
+    if not os.path.exists("logs"):
+        os.mkdir("logs")
+
+    file_handler = RotatingFileHandler(
+        "logs/app.log",
+        maxBytes=10240,   # 10KB per file before rotation
+     backupCount=5     # keep 5 old logs
+    )
+
+    formatter = logging.Formatter(
+        "%(asctime)s | %(levelname)s | %(module)s | %(message)s"
+    )
+
+    file_handler.setFormatter(formatter)
+    file_handler.setLevel(logging.INFO)
+
+    app.logger.addHandler(file_handler)
+    app.logger.setLevel(logging.INFO)
+    app.logger.info("Application startup")
 
     from .views import views 
     from .auth import auth 
