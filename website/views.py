@@ -232,7 +232,6 @@ def update_state():
     request_id = request.get_json().get('requestId')
     request_obj = Requests.query.get(request_id)
     state = request_obj.state if request_obj else None
-    allowed, response = allowed_transition(state, )
 
     if not is_admin(current_user):
         flash('Only Admins can update the request status.', category='error')
