@@ -42,26 +42,30 @@ def create_app(test_config=None):
 
     csrf.init_app(app)
 
+    # Only configure file logging if not in test mode
+    if not app.config.get('TESTING'):
+        if not os.path.exists("logs"):
+            os.mkdir("logs")
 
-    if not os.path.exists("logs"):
-        os.mkdir("logs")
+        file_handler = RotatingFileHandler(
+            "logs/app.log",
+            maxBytes=10240,   # 10KB per file before rotation
+            backupCount=5     # keep 5 old logs
+        )
 
-    file_handler = RotatingFileHandler(
-        "logs/app.log",
-        maxBytes=10240,   # 10KB per file before rotation
-     backupCount=5     # keep 5 old logs
-    )
+        formatter = logging.Formatter(
+            "%(asctime)s | %(levelname)s | %(module)s | %(message)s"
+        )
 
-    formatter = logging.Formatter(
-        "%(asctime)s | %(levelname)s | %(module)s | %(message)s"
-    )
+        file_handler.setFormatter(formatter)
+        file_handler.setLevel(logging.INFO)
 
-    file_handler.setFormatter(formatter)
-    file_handler.setLevel(logging.INFO)
-
-    app.logger.addHandler(file_handler)
-    app.logger.setLevel(logging.INFO)
-    app.logger.info("Application startup")
+        app.logger.addHandler(file_handler)
+        app.logger.setLevel(logging.INFO)
+        app.logger.info("Application startup")
+    else:
+        # In test mode, just use console logging
+        app.logger.setLevel(logging.INFO)
 
     from .views import views 
     from .auth import auth 

@@ -1,5 +1,5 @@
 # Importing Dependencies
-from flask import Blueprint, app, render_template, request, flash, redirect, url_for 
+from flask import Blueprint, render_template, request, flash, redirect, url_for, current_app 
 from .models import User 
 from werkzeug.security import generate_password_hash, check_password_hash  
 from . import db 
@@ -26,7 +26,7 @@ def login():
                 return redirect(url_for('views.home')) 
             else:
                 flash('Incorrect password, try again.', category='error')  
-                app.logger.warning(f"Failed login attempt for email: {email}")
+                current_app.logger.warning(f"Failed login attempt for email: {email}")
         else:
             flash('Email does not exist.', category='error')  
 
