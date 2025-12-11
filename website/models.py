@@ -19,6 +19,7 @@ class Requests(db.Model):
     teams = db.Column(db.String(300), nullable=True)
 
     requester = db.relationship('User', foreign_keys =[requester_id])
+    requested_for = db.relationship('User', foreign_keys=[requested_for_id])
 
 
 
